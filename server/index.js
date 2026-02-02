@@ -58,7 +58,7 @@ const connectDB = async () => {
         };
 
         const MONGO_FALLBACK = "mongodb://localhost:27017/ethree_pos";
-        cached.promise = mongoose.connect(process.env.MONGO_URI || process.env.MONGODB_URI || MONGO_FALLBACK, opts).then((mongoose) => {
+        cached.promise = mongoose.connect(process.env.MONGODB_URI || process.env.MONGO_URI || MONGO_FALLBACK, opts).then((mongoose) => {
             console.log(' New MongoDB Connection Established');
             return mongoose;
         });
