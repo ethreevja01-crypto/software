@@ -63,13 +63,8 @@ app.use(async (req, res, next) => {
         res.status(500).json({
             error: 'Database Connection Failed',
             message: error.message,
-            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
-            hint: 'Check if MONGO_URI is set in Vercel and if IP 0.0.0.0/0 is allowed in MongoDB Atlas.',
-            env_check: {
-                has_mongo: !!(process.env.MONGO_URI || process.env.MONGODB_URI),
-                node_env: process.env.NODE_ENV,
-                db_state: mongoose.connection.readyState
-            }
+            readyState: mongoose.connection.readyState,
+            hint: 'Check MONGODB_URI in Vercel and Atlas IP whitelisting (0.0.0.0/0).'
         });
     }
 });
@@ -110,7 +105,12 @@ app.use('/tickets', ticketRoutes);
 
 // Root Route
 app.get('/api', (req, res) => {
-    res.send('Ethree Express API is running on Vercel.');
+    res.json({
+        status: 'online',
+        message: 'Ethree Express API is running on Vercel.',
+        database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+        dbState: mongoose.connection.readyState
+    });
 });
 
 app.get('/', (req, res) => {
