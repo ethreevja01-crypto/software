@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Scan, CheckCircle, XCircle, AlertCircle, Loader2, ArrowLeft, RefreshCw, QrCode } from 'lucide-react';
 import { Scanner } from '@yudiel/react-qr-scanner';
 import axios from 'axios';
+import { API_URL } from '../api/config';
 import { useNavigate } from 'react-router-dom';
 
 export default function VerifyTicket() {
@@ -38,11 +39,7 @@ export default function VerifyTicket() {
             // Not a JSON string
         }
 
-        setLoading(true);
-        setStatus('idle');
         setTicketData(null);
-
-        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
         try {
             // Use the verify endpoint to redeem

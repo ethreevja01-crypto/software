@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { API_URL } from '../api/config';
 
 export default function Login() {
     const [email, setEmail] = useState('');
@@ -15,8 +16,7 @@ export default function Login() {
         setError('');
 
         try {
-            // NOTE: Using relative path for API URL in production
-            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+            // Use centralized API_URL
             const response = await axios.post(`${API_URL}/api/auth/login`, {
                 email: email.toLowerCase(),
                 password

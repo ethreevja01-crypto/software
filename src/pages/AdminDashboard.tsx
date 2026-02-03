@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { API_URL } from '../api/config';
 import { useNavigate } from 'react-router-dom';
 import { Download, LogOut, RefreshCw, Receipt, Search, Trash2, AlertTriangle, BarChart3, List, Users } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
@@ -76,7 +77,6 @@ export default function AdminDashboard() {
     const fetchTickets = async () => {
         setLoading(true);
         try {
-            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
             const response = await axios.get(`${API_URL}/api/tickets`);
 
             // FIX: Filter out "Sub-Tickets" (Coupons) to avoid double counting transactions.
@@ -96,7 +96,6 @@ export default function AdminDashboard() {
 
     const fetchUsers = async () => {
         try {
-            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
             const token = localStorage.getItem('token');
             const response = await axios.get(`${API_URL}/api/auth/users`, {
                 headers: { Authorization: `Bearer ${token}` }
@@ -109,7 +108,6 @@ export default function AdminDashboard() {
 
     const fetchStats = async () => {
         try {
-            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
             const response = await axios.get(`${API_URL}/api/tickets/stats`);
             setTicketStats(response.data);
         } catch (error) {

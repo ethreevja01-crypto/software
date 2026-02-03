@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { API_URL } from '../api/config';
 import { useNavigate } from 'react-router-dom';
 import { Download, LogOut, RefreshCw, Receipt, Search, ArrowLeft } from 'lucide-react';
 
@@ -27,7 +28,6 @@ export default function Accounts() {
     const fetchTickets = async () => {
         setLoading(true);
         try {
-            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
             const response = await axios.get(`${API_URL}/api/tickets`);
             // Filter only UPI tickets for Accounts page
             const upiTickets = response.data.filter((t: any) => t.paymentMode?.toLowerCase() === 'upi');

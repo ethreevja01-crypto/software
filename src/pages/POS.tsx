@@ -7,6 +7,7 @@ import { Ticket } from '../components/Ticket';
 import { Ticket as TicketIcon, ScanLine, LogOut, WifiOff, RefreshCw, Printer, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { API_URL, FALLBACK_API_URL } from '../api/config';
 
 interface CartItem extends Ride {
     quantity: number;
@@ -72,8 +73,7 @@ export default function POS() {
         const fetchRides = async () => {
             setLoadingRides(true);
             try {
-                // Use relative path (/api) in production by default
-                const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+                // Use centralized API_URL
                 // Append timestamp to prevent caching
                 const token = localStorage.getItem('token');
                 const response = await axios.get(`${API_URL}/api/products?t=${Date.now()}`, {
@@ -132,8 +132,7 @@ export default function POS() {
     const fetchLoyaltyPoints = async (mobile: string) => {
         setLoadingPoints(true);
         try {
-            const API_URL = import.meta.env.VITE_API_URL || 'https://software-tawny-gamma.vercel.app';
-            const res = await axios.get(`${API_URL}/api/loyalty/${mobile}`);
+            const res = await axios.get(`${API_URL || FALLBACK_API_URL}/api/loyalty/${mobile}`);
             if (res.data.points !== undefined) {
                 setLoyaltyPoints(res.data.points);
             }
@@ -175,10 +174,10 @@ export default function POS() {
 
         if (pending.length === 0) return;
 
-        console.log(`Attempting to sync ${pending.length} tickets to ${import.meta.env.VITE_API_URL || 'https://software-tawny-gamma.vercel.app'}/api/tickets`);
+        console.log(`Attempting to sync ${pending.length} tickets to ${API_URL || FALLBACK_API_URL}/api/tickets`);
         setIsSyncing(true);
         try {
-            await axios.post(`${import.meta.env.VITE_API_URL || ''}/api/tickets`, pending);
+            await axios.post(`${API_URL}/api/tickets`, pending);
             localStorage.setItem('pending_tickets', '[]');
             setPendingCount(0);
             alert(`Synced ${pending.length} offline tickets to server.`);
@@ -337,7 +336,6 @@ export default function POS() {
         // 2. Save to Backend in Background (Non-blocking)
         const saveToBackend = async () => {
             try {
-                const API_URL = import.meta.env.VITE_API_URL || 'https://software-tawny-gamma.vercel.app';
                 if (!isOnline) throw new Error('Offline');
 
                 // Bulk Save Tickets
@@ -425,7 +423,6 @@ export default function POS() {
 
         // Save New Transaction to Backend
         try {
-            const API_URL = import.meta.env.VITE_API_URL || '';
             if (!isOnline) throw new Error('Offline');
             await Promise.all(ticketsToSave.map(t => axios.post(`${API_URL}/api/tickets`, t)));
         } catch (error) {
