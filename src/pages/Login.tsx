@@ -50,15 +50,12 @@ export default function Login() {
 
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-white/20 relative z-10 animate-in fade-in zoom-in duration-500">
                 <div className="p-8 pt-10">
-                    <div className="flex justify-center mb-8">
-                        <div className="relative group w-full px-8">
-                            <div className="absolute -inset-1 bg-gradient-to-r from-amber-500/20 to-amber-300/20 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition duration-500"></div>
-                            <img
-                                src="logo.jpeg"
-                                alt="ETHREE Logo"
-                                className="relative w-full h-auto max-h-32 rounded-xl object-contain shadow-md mx-auto"
-                            />
-                        </div>
+                    <div className="flex justify-center mb-8 -mx-8 -mt-10 overflow-hidden rounded-t-2xl">
+                        <img
+                            src="logo.jpeg"
+                            alt="ETHREE Logo"
+                            className="w-full h-auto object-cover hover:scale-105 transition-transform duration-700"
+                        />
                     </div>
 
                     <div className="text-center mb-8">
