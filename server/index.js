@@ -3,6 +3,7 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
+const path = require('path');
 
 dotenv.config();
 
@@ -12,27 +13,6 @@ const PORT = process.env.PORT || 5001;
 // Middleware
 app.use(cors());
 app.use(express.json());
-
-// Swagger Setup
-const swaggerOptions = {
-    definition: {
-        openapi: '3.0.0',
-        info: {
-            title: 'ETHREE POS API',
-            version: '1.0.0',
-            description: 'API for ETHREE - Eat, Enjoy, Entertainment platform',
-        },
-        servers: [
-            {
-                url: `http://localhost:${PORT}`,
-            },
-        ],
-    },
-    apis: ['./routes/*.js'],
-};
-
-const swaggerDocs = swaggerJsdoc(swaggerOptions);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // Mock DB Initializer log
 const mongoose = require('mongoose');
@@ -46,7 +26,6 @@ if (!cached) {
 
 const connectDB = async () => {
     if (cached.conn) {
-        console.log(' Using Cached MongoDB Connection');
         return cached.conn;
     }
 
@@ -78,26 +57,23 @@ const connectDB = async () => {
 app.use(async (req, res, next) => {
     try {
         await connectDB();
+        console.log('[API] DB Connected. State:', mongoose.connection.readyState);
         next();
     } catch (error) {
         console.error('Database Connection Failed:', error);
         res.status(500).json({
             error: 'Database Connection Failed',
             message: error.message,
-            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
-            hint: 'Check if MONGO_URI is set in Vercel and if IP 0.0.0.0/0 is allowed in MongoDB Atlas.',
-            env_check: {
-                has_mongo: !!(process.env.MONGO_URI || process.env.MONGODB_URI),
-                node_env: process.env.NODE_ENV,
-                db_state: mongoose.connection.readyState
-            }
+            readyState: mongoose.connection.readyState,
+            hint: 'Check MONGODB_URI in Vercel and Atlas IP whitelisting (0.0.0.0/0).'
         });
     }
 });
 
-// Root Route
-app.get('/', (req, res) => {
-    res.send('E3 POS Local API is running. Check /api-docs for documentation.');
+// Debugging middleware for Vercel
+app.use((req, res, next) => {
+    console.log(`[API] ${req.method} ${req.url}`);
+    next();
 });
 
 // Import Routes
@@ -105,23 +81,47 @@ const authRoutes = require('./routes/auth');
 const productRoutes = require('./routes/products');
 const orderRoutes = require('./routes/orders');
 const bookingRoutes = require('./routes/bookings');
-
-app.use('/api/auth', authRoutes);
-app.use('/api/products', productRoutes);
-app.use('/api/orders', orderRoutes);
-app.use('/api/bookings', bookingRoutes);
-
 const loyaltyRoutes = require('./routes/loyalty');
-app.use('/api/loyalty', loyaltyRoutes);
-
 const ticketRoutes = require('./routes/tickets');
+
+// Flexible routing: Handle both /api/auth and /auth
+app.use('/api/auth', authRoutes);
+app.use('/auth', authRoutes);
+
+app.use('/api/products', productRoutes);
+app.use('/products', productRoutes);
+
+app.use('/api/orders', orderRoutes);
+app.use('/orders', orderRoutes);
+
+app.use('/api/bookings', bookingRoutes);
+app.use('/bookings', bookingRoutes);
+
+app.use('/api/loyalty', loyaltyRoutes);
+app.use('/loyalty', loyaltyRoutes);
+
 app.use('/api/tickets', ticketRoutes);
+app.use('/tickets', ticketRoutes);
+
+// Root Route
+app.get('/api', (req, res) => {
+    res.json({
+        status: 'online',
+        message: 'Ethree Express API is running on Vercel.',
+        database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+        dbState: mongoose.connection.readyState
+    });
+});
+
+app.get('/', (req, res) => {
+    res.send('Ethree Express API is running on Vercel (Root).');
+});
 
 if (process.env.NODE_ENV !== 'production') {
     app.listen(PORT, () => {
         console.log(`Server running on port ${PORT}`);
-        console.log(`Swagger docs available at http://localhost:${PORT}/api-docs`);
     });
 }
 
+// Export the app for Vercel
 module.exports = app;
