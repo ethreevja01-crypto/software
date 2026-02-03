@@ -46,7 +46,6 @@ export default function AdminDashboard() {
         setLoading(true);
         try {
             const token = localStorage.getItem('token');
-            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
             // Clear Tickets
             await axios.delete(`${API_URL}/api/tickets/clear-all`, {
                 headers: { Authorization: `Bearer ${token}` }
@@ -246,7 +245,6 @@ export default function AdminDashboard() {
         setPasswordMessage('');
         try {
             const token = localStorage.getItem('token');
-            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
             await axios.post(
                 `${API_URL}/api/auth/change-password`,
                 passwordData,
@@ -273,7 +271,6 @@ export default function AdminDashboard() {
         setEmailMessage('');
         try {
             const token = localStorage.getItem('token');
-            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
             await axios.post(
                 `${API_URL}/api/auth/change-email`,
                 emailData,

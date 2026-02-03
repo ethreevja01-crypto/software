@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Scan, CheckCircle, XCircle, AlertCircle, Camera, Loader2 } from 'lucide-react';
 import { Scanner } from '@yudiel/react-qr-scanner';
 import axios from 'axios';
+import { API_URL } from '../api/config';
 
 export function TicketVerifier() {
     const [ticketId, setTicketId] = useState('');
@@ -43,7 +44,6 @@ export function TicketVerifier() {
 
         try {
             // Backend lookup
-            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
             const response = await axios.get(`${API_URL}/api/tickets/${searchId}`);
             const ticket = response.data;
 
