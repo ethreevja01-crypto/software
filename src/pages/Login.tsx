@@ -50,11 +50,11 @@ export default function Login() {
 
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-white/20 relative z-10 animate-in fade-in zoom-in duration-500">
                 <div className="p-8 pt-10">
-                    <div className="flex justify-center mb-8 -mx-8 -mt-10 overflow-hidden rounded-t-2xl">
+                    <div className="flex justify-center mb-6">
                         <img
                             src="logo.jpeg"
                             alt="ETHREE Logo"
-                            className="w-full h-auto object-cover hover:scale-105 transition-transform duration-700"
+                            className="w-56 h-auto object-contain hover:scale-105 transition-transform duration-700"
                         />
                     </div>
 
