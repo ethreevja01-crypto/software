@@ -121,7 +121,7 @@ export function TicketVerifier() {
                 </div>
             )}
 
-            {status === 'used' && (
+            {status === 'used' && ticketData && (
                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex flex-col items-center text-center">
                     <AlertCircle className="w-12 h-12 text-amber-500 mb-2" />
                     <h3 className="text-amber-700 font-bold text-lg">QR Expired / Used</h3>

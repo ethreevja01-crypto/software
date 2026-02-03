@@ -151,7 +151,7 @@ export default function VerifyTicket() {
                             </div>
                         )}
 
-                        {status === 'used' && (
+                        {status === 'used' && ticketData && (
                             <div className="p-12 text-center bg-amber-50 relative overflow-hidden">
                                 <div className="absolute top-0 left-0 w-full h-2 bg-amber-500"></div>
                                 <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl shadow-amber-500/10 ring-4 ring-amber-100">
@@ -165,7 +165,7 @@ export default function VerifyTicket() {
                             </div>
                         )}
 
-                        {status === 'expired' && (
+                        {status === 'expired' && ticketData && (
                             <div className="p-12 text-center bg-orange-50 relative overflow-hidden">
                                 <div className="absolute top-0 left-0 w-full h-2 bg-orange-500"></div>
                                 <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl shadow-orange-500/10 ring-4 ring-orange-100">
@@ -174,7 +174,7 @@ export default function VerifyTicket() {
                                 <h2 className="text-3xl font-black text-orange-800 mb-2 tracking-tight">TICKET EXPIRED</h2>
                                 <p className="text-orange-700/80 font-medium text-lg">
                                     This ticket was valid only on<br />
-                                    <span className="font-bold text-orange-900">{new Date(ticketData.createdAt).toLocaleDateString()}</span>
+                                    <span className="font-bold text-orange-900">{ticketData.createdAt ? new Date(ticketData.createdAt).toLocaleDateString() : 'Previous Date'}</span>
                                 </p>
                             </div>
                         )}

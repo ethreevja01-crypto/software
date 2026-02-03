@@ -822,7 +822,7 @@ export default function AdminDashboard() {
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="w-64 h-48">
+                                    <div className="w-64 h-48 min-h-[192px]">
                                         <ResponsiveContainer width="100%" height="100%">
                                             <PieChart>
                                                 <Pie
