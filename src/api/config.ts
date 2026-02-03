@@ -12,7 +12,7 @@ const envApiUrl = import.meta.env.VITE_API_URL;
 
 // Default fallbacks
 const LOCAL_BACKEND = 'http://localhost:5001';
-const VERCEL_BACKEND = 'https://software-tawny-gamma.vercel.app';
+const VERCEL_BACKEND = 'https://software-rho-three.vercel.app';
 
 export const API_URL = envApiUrl || (isProduction ? '' : LOCAL_BACKEND);
 
