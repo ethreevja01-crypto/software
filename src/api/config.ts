@@ -14,7 +14,7 @@ const envApiUrl = import.meta.env.VITE_API_URL;
 const LOCAL_BACKEND = 'http://localhost:5001';
 const VERCEL_BACKEND = 'https://software-rho-three.vercel.app';
 
-export const API_URL = envApiUrl || (isProduction ? '' : LOCAL_BACKEND);
+export const API_URL = envApiUrl || (isProduction ? VERCEL_BACKEND : LOCAL_BACKEND);
 
 // For features like loyalty that might specifically need the Vercel URL as a fallback
 export const FALLBACK_API_URL = VERCEL_BACKEND;
