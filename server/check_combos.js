@@ -4,10 +4,9 @@ const uri = "mongodb+srv://Vercel-Admin-ethree_data:zEx6FeaB7XIaDOgr@ethree-data
 async function run() {
     await mongoose.connect(uri);
     const db = mongoose.connection.db;
-    const count = await db.collection('products').countDocuments({name: { $regex: /COMBO/ }});
-    console.log("Number of Combo Products:", count);
-    const combos = await db.collection('products').find({name: { $regex: /COMBO/ }}).toArray();
-    console.log(combos.map(c => `${c.name} - ${c.price}`));
+    const products = await db.collection('products').find({}).toArray();
+    console.log("First 5 Products in live database:");
+    products.slice(0,5).forEach((p, i) => console.log(`${i+1}. ${p.name} - ${p.price}`));
     process.exit(0);
 }
 run().catch(console.error);
