@@ -4,7 +4,7 @@ import { RideCard } from '../components/RideCard';
 import { Cart } from '../components/Cart';
 import { Ticket } from '../components/Ticket';
 // TicketVerifier removed
-import { Ticket as TicketIcon, ScanLine, LogOut, WifiOff, RefreshCw, Printer, X } from 'lucide-react';
+import { Ticket as TicketIcon, LogOut, WifiOff, RefreshCw, Printer, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { API_URL, FALLBACK_API_URL } from '../api/config';
@@ -501,14 +501,6 @@ export default function POS() {
 
                         {/* Actions */}
                         <div className="flex items-center gap-2 md:gap-4">
-                            <button
-                                onClick={() => navigate('/verify')}
-                                className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white px-3 py-2 md:px-4 md:py-2 rounded-xl transition-all border border-slate-700 active:scale-95"
-                            >
-                                <ScanLine size={18} />
-                                <span className="hidden md:inline font-bold text-sm">Verify</span>
-                            </button>
-
                             <div className="h-6 md:h-8 w-px bg-slate-800 mx-0.5"></div>
 
                             <button

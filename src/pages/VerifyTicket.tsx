@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Scan, CheckCircle, XCircle, AlertCircle, Loader2, ArrowLeft, RefreshCw, QrCode } from 'lucide-react';
+import { Scan, CheckCircle, XCircle, AlertCircle, Loader2, RefreshCw, QrCode, LogOut } from 'lucide-react';
 import { Scanner } from '@yudiel/react-qr-scanner';
 import axios from 'axios';
 import { API_URL } from '../api/config';
@@ -101,10 +101,15 @@ export default function VerifyTicket() {
                 <div className="container mx-auto flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <button
-                            onClick={() => navigate('/pos')}
-                            className="bg-slate-800 hover:bg-slate-700 p-2 rounded-xl transition-colors border border-slate-700 hover:border-slate-500"
+                            onClick={() => {
+                                localStorage.removeItem('token');
+                                localStorage.removeItem('user');
+                                navigate('/login');
+                            }}
+                            className="bg-slate-800 hover:bg-rose-500/10 p-2 text-slate-400 hover:text-rose-400 rounded-xl transition-colors border border-slate-700 hover:border-rose-500/50"
+                            title="Logout"
                         >
-                            <ArrowLeft className="text-white" size={24} />
+                            <LogOut size={24} />
                         </button>
                         <div>
                             <h1 className="text-xl font-bold tracking-tight">VERIFY TICKET</h1>

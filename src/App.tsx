@@ -20,12 +20,14 @@ function PrivateRoute({ children, role }: { children: React.ReactNode, role?: st
 
   if (role && user.role !== role) {
     if (user.role === 'admin') return <Navigate to="/admin" replace />;
+    if (user.role === 'verify') return <Navigate to="/verify" replace />;
     return <Navigate to="/pos" replace />;
   }
 
-  // Special Case: Block Admin from POS
-  if (!role && user.role === 'admin' && window.location.hash.includes('/pos')) {
-    return <Navigate to="/admin" replace />;
+  // Special Case: Block Admin and Verify from POS
+  if (!role && window.location.hash.includes('/pos')) {
+    if (user.role === 'admin') return <Navigate to="/admin" replace />;
+    if (user.role === 'verify') return <Navigate to="/verify" replace />;
   }
 
   return children;
@@ -84,7 +86,7 @@ function App() {
         <Route
           path="/verify"
           element={
-            <PrivateRoute>
+            <PrivateRoute role="verify">
               <VerifyTicket />
             </PrivateRoute>
           }
@@ -115,7 +117,12 @@ function App() {
         />
         <Route path="/" element={
           localStorage.getItem('token')
-            ? (JSON.parse(localStorage.getItem('user') || '{}').role === 'admin' ? <Navigate to="/admin" replace /> : <Navigate to="/pos" replace />)
+            ? (() => {
+              const user = JSON.parse(localStorage.getItem('user') || '{}');
+              if (user.role === 'admin') return <Navigate to="/admin" replace />;
+              if (user.role === 'verify') return <Navigate to="/verify" replace />;
+              return <Navigate to="/pos" replace />;
+            })()
             : <Navigate to="/login" replace />
         } />
       </Routes>

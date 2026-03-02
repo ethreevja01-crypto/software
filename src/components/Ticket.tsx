@@ -31,34 +31,56 @@ interface TicketProps {
     };
 }
 
-export const Ticket = forwardRef<HTMLDivElement, TicketProps & { subTickets?: any[], skipMaster?: boolean, isPreview?: boolean }>(({ items, total, date, ticketId, mobileNumber, subTickets, skipMaster, earnedPoints, isPreview, settings: margins }, ref) => {
+export const Ticket = forwardRef<HTMLDivElement, TicketProps & { subTickets?: any[], skipMaster?: boolean, isPreview?: boolean }>(({ items, total, date, ticketId, subTickets, skipMaster, isPreview, settings: margins }, ref) => {
 
-    const TicketContent = ({ data, isCoupon = false, items: ticketItems, total: ticketTotal, hasPageBreak = false }: { data: any, isCoupon?: boolean, items?: CartItem[], total?: number, hasPageBreak?: boolean }) => {
+    const TicketContent = ({ data, items: ticketItems, total: ticketTotal, hasPageBreak = false }: { data: any, items?: CartItem[], total?: number, hasPageBreak?: boolean }) => {
         const displayItems = ticketItems || items;
         const displayTotal = ticketTotal !== undefined ? ticketTotal : total;
+        const mainItemName = displayItems && displayItems.length > 0 ? displayItems[0].name.toUpperCase() : 'ANY RIDE';
+        const isFreeRide = displayTotal === 0;
+
+        // Use provided date or fallback to current time formatted
+        let dateObj = new Date();
+        if (date && date !== '') {
+            dateObj = new Date(date);
+        }
+
+        // Format to matches the image: DD-MM-YYYY
+        const dateFormat = `${String(dateObj.getDate()).padStart(2, '0')}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${dateObj.getFullYear()}`;
+
+        // Format time: hh:mm A
+        let hours = dateObj.getHours();
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // the hour '0' should be '12'
+        const timeFormat = `${String(hours).padStart(2, '0')}:${String(dateObj.getMinutes()).padStart(2, '0')} ${ampm}`;
+
+        const shortId = data.id.split('-').slice(-2).join('-').toUpperCase(); // Extracted ID like 731-R1
 
         const content = (
-            <div className={`bg-white text-black font-mono w-full ticket-content ${hasPageBreak ? 'page-break-before' : ''}`}
+            <div className={`bg-white text-black font-mono ticket-content ${hasPageBreak ? 'page-break-before' : ''}`}
                 style={{
                     pageBreakBefore: hasPageBreak ? 'always' : 'auto',
-                    width: '3in',
+                    width: '3.5in', // Slightly wider to match aspect ratio
                     backgroundColor: 'white',
                     margin: isPreview ? '0 auto' : '0',
-                    paddingTop: margins ? `${margins.top}px` : '0',
-                    paddingBottom: margins ? `${margins.bottom}px` : '0',
-                    /* Horizontal Shift (Offset) */
+                    paddingTop: margins ? `${margins.top}px` : '10px',
+                    paddingBottom: margins ? `${margins.bottom}px` : '10px',
+                    paddingLeft: '10px',
+                    paddingRight: '10px',
                     transformOrigin: 'top center',
                     transform: `translateX(${(margins?.left || 0) - (margins?.right || 0)}px) scale(${margins?.scale || 1})`,
+                    fontFamily: 'Courier New, Courier, monospace' // Ensures monospace look like the receipt
                 }}
             >
                 <style>{`
                     @media print {
                         @page { 
                             margin: 0 !important; 
-                            size: 3in auto !important;
+                            size: 3.5in auto !important;
                         }
                         html, body {
-                            width: 3in !important;
+                            width: 3.5in !important;
                             margin: 0 !important;
                             padding: 0 !important;
                             background: white !important;
@@ -69,7 +91,7 @@ export const Ticket = forwardRef<HTMLDivElement, TicketProps & { subTickets?: an
                             position: absolute !important;
                             top: 0 !important;
                             left: 0 !important;
-                            width: 3in !important;
+                            width: 3.5in !important;
                             margin: 0 !important;
                             padding: 0 !important;
                             background: white !important;
@@ -88,98 +110,62 @@ export const Ticket = forwardRef<HTMLDivElement, TicketProps & { subTickets?: an
                     }
                 `}</style>
 
-                <div className="flex w-full gap-0 items-stretch border-t-2 border-black">
-                    {/* Left Side: Branding and Critical Info (65% width) */}
-                    <div className="w-[65%] flex flex-col justify-between text-center border-r-2 border-dashed border-black pr-1 pl-1">
-                        <div className="pt-0">
-                            <h1 className="font-black leading-none" style={{ fontSize: '26pt' }}>ETHREE</h1>
-                            <p className="font-black italic leading-none uppercase" style={{ fontSize: '7.5pt', letterSpacing: '0.05em' }}>EAT ENJOY ENTERTAIN</p>
-                            <div className="mt-1 border-y border-black py-0.5">
-                                <span className="font-black" style={{ fontSize: '9pt' }}>📞 70369 23456</span>
-                            </div>
-                        </div>
-
-                        <div className="flex-1 flex flex-col justify-center border-y-2 border-dashed border-black/20 py-0.5">
-                            {isCoupon ? (
-                                <div className="border-2 border-black text-black px-1.5 py-1.5">
-                                    <span className="font-black leading-tight uppercase block" style={{ fontSize: '18pt' }}>{displayItems[0]?.name || 'ANY RIDE'}</span>
-                                    <div className="flex justify-between items-center border-t border-black mt-1 pt-1">
-                                        <span className="font-bold uppercase" style={{ fontSize: '8pt' }}>PASS • ETHREE</span>
-                                        <span className="font-black" style={{ fontSize: '10pt' }}>₹{ticketTotal}</span>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="space-y-0.5 text-left px-1">
-                                    <div className="uppercase font-black border-b-2 border-black mb-1 flex justify-between" style={{ fontSize: '9pt' }}>
-                                        <span>ITEMS</span>
-                                        <span>PRICE</span>
-                                    </div>
-                                    {displayItems.map((item, idx) => (
-                                        <div key={`${item.id}-${idx}`} className="font-black leading-tight flex justify-between" style={{ fontSize: '9.5pt' }}>
-                                            <span className="pr-1">{item.quantity}x {item.name.toUpperCase()}</span>
-                                            <span>₹{item.price * item.quantity}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="border-t-2 border-black pt-1">
-                            {!isCoupon ? (
-                                <div className="flex flex-col items-center leading-none pb-1">
-                                    <div className="mb-1">
-                                        <span className="font-black uppercase block" style={{ fontSize: '8pt' }}>{date}</span>
-                                    </div>
-                                    <div className="flex items-end justify-center">
-                                        <span className="font-black pr-1 mb-1" style={{ fontSize: '10pt' }}>TOTAL</span>
-                                        <span className="font-black tracking-tighter" style={{ fontSize: '52pt' }}>₹{displayTotal}</span>
-                                    </div>
-                                    {earnedPoints ? <span className="font-black italic bg-black text-white px-2 mt-0.5" style={{ fontSize: '8pt' }}>★ {earnedPoints} PTS ★</span> : null}
-                                </div>
-                            ) : (
-                                <div className="flex flex-col items-center px-1 pb-1">
-                                    <span className="font-black uppercase" style={{ fontSize: '8pt' }}>{date}</span>
-                                    <span className="font-black uppercase border-t border-black mt-1 w-full" style={{ fontSize: '8pt' }}>ID:{data.id.slice(-6).toUpperCase()}</span>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Right Side: QR Code and Verify (35% width) */}
-                    <div className="flex-1 flex flex-col items-center justify-center bg-slate-50/50">
-                        <div className="mb-2">
-                            <span style={{ fontSize: '8.5pt' }} className="font-black uppercase block border-b border-black pb-0.5">ID: {data.id.slice(-6).toUpperCase()}</span>
-                        </div>
-
-                        <div className="bg-white border-2 border-black p-1.5 shadow-sm">
-                            <QRCodeSVG value={JSON.stringify({ id: data.id })} size={100} level="M" />
-                        </div>
-
-                        <span className="font-black uppercase leading-none mt-2 text-center" style={{ fontSize: '8pt', letterSpacing: '0.1em' }}>SCAN TO<br />VERIFY</span>
-
-                        {mobileNumber && (
-                            <div className="mt-6 text-center border-t-2 border-black pt-2 w-full px-1">
-                                <span style={{ fontSize: '7.5pt' }} className="font-black uppercase block opacity-60">CUSTOMER</span>
-                                <span style={{ fontSize: '11pt' }} className="font-black tracking-wider">{mobileNumber.slice(-10)}</span>
-                            </div>
-                        )}
+                {/* Header Row: ETHREE and Date */}
+                <div className="flex justify-between items-end mb-1">
+                    <h1 className="font-extrabold tracking-tighter leading-none m-0 p-0" style={{ fontSize: '32pt', fontFamily: 'Impact, sans-serif' }}>ETHREE</h1>
+                    <div className="font-bold text-right leading-none pb-1" style={{ fontSize: '14pt', letterSpacing: '2px' }}>
+                        {dateFormat}
                     </div>
                 </div>
 
-                {/* HIGH-CONTRAST DARK WEBSITE FOOTER */}
-                <div className="border-t-2 border-black bg-white text-black py-1.5 text-center px-1">
-                    <div className="border border-black py-0.5">
-                        <p style={{ fontSize: '7pt' }} className="font-black uppercase tracking-tight">VALID ON BOOKED DATE ONLY • EXPIRES AFTER SCAN</p>
+                {/* Sub-Header Row: Tagline and Time/ID */}
+                <div className="flex justify-between items-start mb-4">
+                    <div className="bg-black text-white px-2 py-1 inline-block mt-1 hidden sm:inline-block print:inline-block">
+                        <span className="font-bold whitespace-nowrap" style={{ fontSize: '10pt' }}>Eat. Enjoy. Entertain</span>
                     </div>
-                    <div className="mt-1.5 border-2 border-black py-1">
-                        <p style={{ fontSize: '12pt' }} className="font-black tracking-widest leading-none">WWW.ETHREE.IN • <span className="text-[8pt] opacity-80">v5.0</span></p>
+                    <div className="text-right font-bold leading-tight pl-2 whitespace-nowrap" style={{ fontSize: '11pt' }}>
+                        <div>{timeFormat}</div>
+                        <div>ID: {shortId}</div>
                     </div>
                 </div>
 
-                {/* Sub-Footer */}
-                <div className="border-t border-dashed border-black py-1 text-center bg-white">
-                    <p className="font-black uppercase tracking-tight" style={{ fontSize: '7.5pt' }}>No Refund • Non Transferable • Thank You</p>
+                {/* Middle Content: Price Block & QR Code */}
+                <div className="flex justify-between items-center mb-4 px-2">
+                    {/* Left: Name and Price */}
+                    <div className="flex flex-col items-center justify-center flex-1 pr-2 overflow-hidden">
+                        <div className="font-bold text-center mb-2 leading-tight uppercase whitespace-nowrap" style={{ fontSize: isFreeRide ? '16pt' : '12pt' }}>
+                            {isFreeRide ? 'FREE RIDE' : mainItemName}
+                        </div>
+                        <div className="bg-black text-white rounded-xl flex items-center justify-center shadow-sm px-4 py-3" style={{ minWidth: '100px' }}>
+                            <span className="font-bold leading-none" style={{ fontSize: '28pt' }}>{displayTotal}/-</span>
+                        </div>
+                    </div>
+
+                    {/* Right: QR Code */}
+                    <div className="flex flex-col items-center justify-center pl-2">
+                        <div className="bg-white border-[3px] border-black rounded-lg p-1.5 shadow-sm inline-block">
+                            <QRCodeSVG value={JSON.stringify({ id: data.id })} size={110} level="M" />
+                        </div>
+                        <div className="font-bold mt-1" style={{ fontSize: '11pt' }}>QR CODE</div>
+                    </div>
                 </div>
+
+                {/* Divider Line */}
+                <div className="h-1 bg-slate-300 w-full my-3"></div>
+
+                {/* Footer Notes */}
+                <div className="text-center flex flex-col items-center justify-center px-1 font-bold space-y-2">
+                    <div className="whitespace-nowrap" style={{ fontSize: '9pt' }}>VALID ON BOOKED DATE ONLY . EXPIRES ON SCAN</div>
+
+                    <div className="text-slate-600 whitespace-nowrap" style={{ fontSize: '11pt' }}>For Reward Points Login to:</div>
+
+                    <div className="font-extrabold tracking-widest leading-none my-1 whitespace-nowrap" style={{ fontSize: '15pt' }}>WWW.ETHREE.IN</div>
+
+                    <div className="whitespace-nowrap" style={{ fontSize: '8.5pt' }}>NO REFUND - NON TRANSFERABLE - VISIT AGAIN</div>
+
+                    <div className="font-extrabold mt-1 whitespace-nowrap" style={{ fontSize: '16pt', letterSpacing: '1px' }}>Ph: 70369 23456</div>
+                </div>
+
             </div>
         );
 
@@ -196,7 +182,6 @@ export const Ticket = forwardRef<HTMLDivElement, TicketProps & { subTickets?: an
                 <TicketContent
                     key={ticket.id}
                     data={ticket}
-                    isCoupon={ticket.isCoupon}
                     items={ticket.items}
                     total={ticket.amount}
                     hasPageBreak={!skipMaster || idx > 0}

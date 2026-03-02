@@ -89,7 +89,18 @@ const seedDB = async () => {
             console.log('POS 1 user created');
         }
 
-        // Check and create POS 2
+        // Check and create Verify user
+        const verifyEmail = 'verify1@ethree.com';
+        const verifyExists = await User.findOne({ email: verifyEmail });
+        if (!verifyExists) {
+            await User.create({
+                name: 'Ticket Verifier 1',
+                email: verifyEmail,
+                password: 'verify123',
+                role: 'verify'
+            });
+            console.log('Verify 1 user created');
+        }
         const pos2Email = 'pos2@ethree.com';
         const pos2Exists = await User.findOne({ email: pos2Email });
         if (!pos2Exists) {
