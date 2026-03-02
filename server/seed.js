@@ -8,7 +8,8 @@ dotenv.config({ path: path.join(__dirname, '.env') });
 
 const products = [
     // POS 1 RIDES (From Database Image)
-    { id: '1', name: 'COMBO', price: 500, allowedPos: ['pos1@ethree.com'], category: 'play', version: '5.0', description: 'Standard Combo Pack for a complete ETHREE experience.', image: 'logo.jpeg' },
+    { id: '1a', name: 'COMBO ADULT', price: 500, allowedPos: ['pos1@ethree.com'], category: 'play', version: '5.0', description: 'Standard Combo Pack for a complete ETHREE experience.', image: 'logo.jpeg' },
+    { id: '1b', name: 'COMBO CHILD', price: 300, allowedPos: ['pos1@ethree.com'], category: 'play', version: '5.0', description: 'Standard Combo Pack for a complete ETHREE experience.', image: 'logo.jpeg' },
     { id: '2', name: 'TL TRAIN', price: 50, allowedPos: ['pos1@ethree.com'], category: 'play', version: '5.0', image: 'TL train.jpg' },
     { id: '3', name: 'ETHREE BUS', price: 100, allowedPos: ['pos1@ethree.com'], category: 'play', version: '5.0', image: 'e three bus ride.webp' },
     { id: '4', name: 'BOUNCY', price: 100, allowedPos: ['pos1@ethree.com'], category: 'play', version: '5.0', image: 'BOUNCY.webp' },
