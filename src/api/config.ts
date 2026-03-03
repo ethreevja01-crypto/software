@@ -11,7 +11,7 @@ const isProduction = import.meta.env.PROD;
 const envApiUrl = import.meta.env.VITE_API_URL;
 
 // Default fallbacks
-const LOCAL_BACKEND = `http://${window.location.hostname}:5001`;
+const LOCAL_BACKEND = 'http://192.168.0.6:5001';
 const VERCEL_BACKEND = 'https://software-rho-three.vercel.app';
 
 export const API_URL = envApiUrl || (isProduction ? VERCEL_BACKEND : LOCAL_BACKEND);
