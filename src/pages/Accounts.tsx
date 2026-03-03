@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { API_URL } from '../api/config';
+// Override the standard local API_URL with the public cloud API for all Admin actions
+const API_URL = 'https://api.ethree.in';
 import { useNavigate } from 'react-router-dom';
 import { Download, LogOut, RefreshCw, Receipt, Search, ArrowLeft } from 'lucide-react';
 
