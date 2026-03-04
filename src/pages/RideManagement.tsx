@@ -40,7 +40,10 @@ export default function RideManagement() {
     const fetchRides = async () => {
         setLoading(true);
         try {
-            const response = await axios.get(`${API_URL}/api/products?t=${Date.now()}`);
+            const token = localStorage.getItem('token');
+            const response = await axios.get(`${API_URL}/api/products?t=${Date.now()}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             setRides(response.data);
         } catch (error) {
             console.error('Failed to fetch rides', error);

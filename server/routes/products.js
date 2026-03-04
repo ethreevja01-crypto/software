@@ -84,9 +84,18 @@ router.get('/', auth, async (req, res) => {
         }
 
         let query = {};
-        if (req.user && req.user.role === 'admin') {
-            // Admin sees all
+        if (req.user && req.user.role === 'superadmin') {
+            // SuperAdmin sees all
             query = {};
+        } else if (req.user && req.user.role === 'admin') {
+            const posPattern = new RegExp(`^${req.user.posId}`, 'i');
+            query = {
+                $or: [
+                    { allowedPos: posPattern },
+                    { allowedPos: { $size: 0 } },
+                    { allowedPos: { $exists: false } }
+                ]
+            };
         } else if (req.user && (req.user.role === 'pos' || req.user.role === 'stall')) {
             // POS sees their assigned rides AND only those that are 'on'
             query = {
@@ -112,11 +121,16 @@ module.exports = router;
  * @swagger
  * /api/products:
  *   post:
- *     summary: Create a product (Admin only - HOTFIX: Open for now)
+ *     summary: Create a product (Protected)
  *     tags: [Products]
  */
-router.post('/', async (req, res) => {
+router.post('/', auth, admin, async (req, res) => {
     try {
+        let productData = req.body;
+        // If it's a branch admin, lock the new product to their branch ONLY
+        if (req.user.role === 'admin') {
+            productData.allowedPos = [`${req.user.posId}@ethree.com`];
+        }
         const product = await Product.create(req.body);
         res.status(201).json(product);
     } catch (err) {
@@ -169,12 +183,18 @@ router.get('/debug-db', async (req, res) => {
  * @swagger
  * /api/products/:id:
  *   put:
- *     summary: Update a product (Admin only - HOTFIX: Open for now)
+ *     summary: Update a product (Protected)
  *     tags: [Products]
  */
-router.put('/:id', async (req, res) => {
+router.put('/:id', auth, admin, async (req, res) => {
     try {
-        const product = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        let updateData = req.body;
+        // Prevent branch admins from making a local ride global or transferring it
+        if (req.user.role === 'admin') {
+            updateData.allowedPos = [`${req.user.posId}@ethree.com`];
+        }
+
+        const product = await Product.findByIdAndUpdate(req.params.id, updateData, { new: true });
         if (!product) return res.status(404).json({ message: 'Product not found' });
         res.json(product);
     } catch (err) {
@@ -186,13 +206,23 @@ router.put('/:id', async (req, res) => {
  * @swagger
  * /api/products/:id:
  *   delete:
- *     summary: Delete a product (Admin only - HOTFIX: Open for now)
+ *     summary: Delete a product (Protected)
  *     tags: [Products]
  */
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', auth, admin, async (req, res) => {
     try {
-        const success = await Product.findByIdAndDelete(req.params.id);
-        if (!success) return res.status(404).json({ message: 'Product not found' });
+        // Enforce ownership: Admin can only delete their POS rides. Superadmin can delete any.
+        const productToDelete = await Product.findById(req.params.id);
+        if (!productToDelete) return res.status(404).json({ message: 'Product not found' });
+
+        if (req.user.role === 'admin') {
+            const isOwner = productToDelete.allowedPos && productToDelete.allowedPos.some(pos => pos.toLowerCase().startsWith(req.user.posId.toLowerCase()));
+            if (!isOwner && productToDelete.allowedPos.length > 0) {
+                return res.status(403).json({ message: 'Cannot delete rides belonging to other branches.' });
+            }
+        }
+
+        await Product.findByIdAndDelete(req.params.id);
         res.json({ message: 'Product deleted' });
     } catch (err) {
         res.status(500).json({ message: err.message });
