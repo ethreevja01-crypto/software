@@ -67,17 +67,44 @@ const seedDB = async () => {
         await Product.insertMany(products);
         console.log('Products seeded');
 
-        // Check and create Default Admin
+        // Check and create Default Admin (Superadmin)
         const adminEmail = 'admin@ethree.com';
         const adminExists = await User.findOne({ email: adminEmail });
         if (!adminExists) {
             await User.create({
-                name: 'Ethree Admin',
+                name: 'Ethree Super Admin',
                 email: adminEmail,
                 password: 'admin123', // Will be hashed by pre-save
-                role: 'admin'
+                role: 'superadmin',
+                posId: 'all'
             });
-            console.log('Admin user created');
+            console.log('Superadmin user created');
+        }
+
+        // Check and create POS 1 Admin
+        const admin1Email = 'admin1@ethree.com';
+        if (!(await User.findOne({ email: admin1Email }))) {
+            await User.create({
+                name: 'POS 1 Manager',
+                email: admin1Email,
+                password: 'admin123',
+                role: 'admin',
+                posId: 'pos1'
+            });
+            console.log('POS 1 Admin created');
+        }
+
+        // Check and create POS 2 Admin
+        const admin2Email = 'admin2@ethree.com';
+        if (!(await User.findOne({ email: admin2Email }))) {
+            await User.create({
+                name: 'POS 2 Manager',
+                email: admin2Email,
+                password: 'admin123',
+                role: 'admin',
+                posId: 'pos2'
+            });
+            console.log('POS 2 Admin created');
         }
 
         // Check and create POS 1

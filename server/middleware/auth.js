@@ -21,8 +21,8 @@ const auth = (req, res, next) => {
 };
 
 const admin = (req, res, next) => {
-    if (req.user.role !== 'admin') {
-        return res.status(403).json({ message: 'Access denied. Admin only.' });
+    if (req.user.role !== 'admin' && req.user.role !== 'superadmin') {
+        return res.status(403).json({ message: 'Access denied. Admin or Superadmin only.' });
     }
     next();
 };

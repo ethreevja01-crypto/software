@@ -24,6 +24,11 @@ router.post('/', async (req, res) => {
             return res.status(400).json({ message: 'Invalid ticket data' });
         }
 
+        // Safety: Ensure it carries some posId identifying where it came from.
+        if (!ticketData.posId) {
+            ticketData.posId = 'pos1'; // default fallback
+        }
+
         const newTicket = await Ticket.create(ticketData);
         res.status(201).json(newTicket);
     } catch (err) {
@@ -46,8 +51,14 @@ router.post('/', async (req, res) => {
  */
 router.get('/', async (req, res) => {
     try {
+        let query = {};
+        // Use a query parameter ?posId=someval to filter tickets
+        if (req.query.posId && req.query.posId !== 'all') {
+            query.posId = req.query.posId;
+        }
+
         // Sort by createdAt desc (newest first)
-        const tickets = await Ticket.find().sort({ createdAt: -1 });
+        const tickets = await Ticket.find(query).sort({ createdAt: -1 });
         res.json(tickets);
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -74,6 +85,10 @@ router.get('/stats', async (req, res) => {
             createdAt: { $gte: startOfDay, $lte: endOfDay },
             parentId: { $exists: false } // Only count master tickets for revenue/count
         };
+
+        if (req.query.posId && req.query.posId !== 'all') {
+            query.posId = req.query.posId;
+        }
 
         const tickets = await Ticket.find(query);
 

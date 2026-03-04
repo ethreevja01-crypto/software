@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 // Override the standard local API_URL with the public cloud API for all Admin actions
-const API_URL = 'https://api.ethree.in';
+import { API_URL } from '../api/config';
 import { useNavigate } from 'react-router-dom';
 import { Download, LogOut, RefreshCw, Receipt, Search, Trash2, AlertTriangle, BarChart3, List, Users } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
@@ -77,7 +77,9 @@ export default function AdminDashboard() {
     const fetchTickets = async () => {
         setLoading(true);
         try {
-            const response = await axios.get(`${API_URL}/api/tickets`);
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const posId = (user.role === 'superadmin') ? 'all' : (user.posId || 'pos1');
+            const response = await axios.get(`${API_URL}/api/tickets?posId=${posId}`);
 
             // FIX: Filter out "Sub-Tickets" (Coupons) to avoid double counting transactions.
             // We only want to show the "Master Ticket" (Receipt) which contains the total amount.
@@ -108,7 +110,9 @@ export default function AdminDashboard() {
 
     const fetchStats = async () => {
         try {
-            const response = await axios.get(`${API_URL}/api/tickets/stats`);
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const posId = (user.role === 'superadmin') ? 'all' : (user.posId || 'pos1');
+            const response = await axios.get(`${API_URL}/api/tickets/stats?posId=${posId}`);
             setTicketStats(response.data);
         } catch (error) {
             console.error('Failed to fetch stats', error);

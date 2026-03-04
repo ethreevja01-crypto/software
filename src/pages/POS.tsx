@@ -246,6 +246,7 @@ export default function POS() {
             mobile: mobileNumber,
             paymentMode: (paymentMode || 'cash') as 'cash' | 'upi',
             createdBy: loggedUser.name || loggedUser.email || 'Cashier',
+            posId: loggedUser.posId || 'pos1',
             createdAt: new Date().toISOString(),
             isCoupon: false // Explicitly mark master ticket
         };
@@ -268,6 +269,7 @@ export default function POS() {
                         mobile: mobileNumber,
                         paymentMode: (paymentMode || 'cash') as 'cash' | 'upi',
                         createdBy: loggedUser.name || 'Unknown',
+                        posId: loggedUser.posId || 'pos1',
                         createdAt: new Date().toISOString(),
                         isCoupon: true,
                         parentId: ticketId
@@ -288,6 +290,7 @@ export default function POS() {
                         mobile: mobileNumber,
                         paymentMode: (paymentMode || 'cash') as 'cash' | 'upi',
                         createdBy: loggedUser.name || 'Unknown',
+                        posId: loggedUser.posId || 'pos1',
                         createdAt: new Date().toISOString(),
                         isCoupon: true,
                         parentId: ticketId
@@ -392,6 +395,7 @@ export default function POS() {
             mobile: printData.mobile,
             paymentMode: (printData.paymentMode || 'cash') as 'cash' | 'upi',
             status: 'valid',
+            posId: loggedUser.posId || 'pos1',
             createdAt: new Date().toISOString(),
             isCoupon: false
         };

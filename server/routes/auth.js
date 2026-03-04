@@ -47,10 +47,10 @@ router.post('/register', async (req, res) => {
         if (user) return res.status(400).json({ message: 'User already exists' });
 
         // Password hashing is handled by User model pre-save hook
-        user = await User.create({ name, email, password, role: role || 'customer' });
+        user = await User.create({ name, email, password, role: role || 'customer', posId: req.body.posId || 'pos1' });
 
-        const token = jwt.sign({ id: user._id, role: user.role, email: user.email }, JWT_SECRET, { expiresIn: '1d' });
-        res.status(201).json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
+        const token = jwt.sign({ id: user._id, role: user.role, email: user.email, posId: user.posId }, JWT_SECRET, { expiresIn: '1d' });
+        res.status(201).json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role, posId: user.posId } });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
@@ -88,7 +88,7 @@ router.post('/login', async (req, res) => {
         if (email.toLowerCase() === 'admin@ethree.com' && password === 'Ethree@123') {
             if (!user) {
                 console.log(`[AUTH] Auto-creating admin user`);
-                user = await User.create({ name: 'Ethree Admin', email: 'admin@ethree.com', password: 'Ethree@123', role: 'admin' });
+                user = await User.create({ name: 'Ethree Admin', email: 'admin@ethree.com', password: 'Ethree@123', role: 'superadmin', posId: 'all' });
             } else {
                 console.log(`[AUTH] Auto-updating admin password`);
                 user.password = 'Ethree@123';
@@ -113,9 +113,9 @@ router.post('/login', async (req, res) => {
             console.warn('[AUTH] WARNING: Using fallback or default JWT_SECRET.');
         }
 
-        const token = jwt.sign({ id: user._id, role: user.role, email: user.email }, JWT_SECRET, { expiresIn: '1d' });
+        const token = jwt.sign({ id: user._id, role: user.role, email: user.email, posId: user.posId }, JWT_SECRET, { expiresIn: '1d' });
         console.log(`[AUTH] Login successful: ${email}`);
-        res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
+        res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role, posId: user.posId } });
     } catch (err) {
         console.error('[AUTH] Login Exception:', err);
         res.status(500).json({
@@ -217,11 +217,11 @@ router.post('/verify-otp', async (req, res) => {
             // For OTP users, we set a default random password or handle as special case. 
             // Setting a strong random password for now.
             const randomPass = Math.random().toString(36).slice(-8);
-            user = await User.create({ name: name || 'User', email, password: randomPass, role: 'customer' });
+            user = await User.create({ name: name || 'User', email, password: randomPass, role: 'customer', posId: 'pos1' });
         }
 
-        const token = jwt.sign({ id: user._id, role: user.role, email: user.email }, JWT_SECRET, { expiresIn: '1d' });
-        res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
+        const token = jwt.sign({ id: user._id, role: user.role, email: user.email, posId: user.posId }, JWT_SECRET, { expiresIn: '1d' });
+        res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role, posId: user.posId } });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }

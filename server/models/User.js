@@ -5,7 +5,8 @@ const userSchema = new mongoose.Schema({
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    role: { type: String, enum: ['customer', 'admin', 'pos', 'verify', 'stall'], default: 'customer' },
+    role: { type: String, enum: ['customer', 'admin', 'superadmin', 'pos', 'verify', 'stall'], default: 'customer' },
+    posId: { type: String, default: 'pos1' },
     rewardPoints: { type: Number, default: 0 },
     createdAt: { type: Date, default: Date.now }
 });

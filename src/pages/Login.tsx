@@ -16,11 +16,8 @@ export default function Login() {
         setError('');
 
         try {
-            // Check if it's the admin trying to log in, route them to the external cloud API.
-            // Otherwise, route everyone else to the local POS API.
-            const targetApi = email.toLowerCase() === 'admin@ethree.com'
-                ? 'https://api.ethree.in'
-                : API_URL;
+            // Everyone is routed to the configured API_URL (Vercel Backend)
+            const targetApi = API_URL;
 
             const response = await axios.post(`${targetApi}/api/auth/login`, {
                 email: email.toLowerCase(),

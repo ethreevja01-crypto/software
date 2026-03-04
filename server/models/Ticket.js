@@ -9,6 +9,7 @@ const ticketSchema = new mongoose.Schema({
     mobile: { type: String },
     paymentMode: { type: String, enum: ['cash', 'upi'], default: 'cash' },
     createdBy: { type: String }, // User name or ID who issued the ticket
+    posId: { type: String }, // POS Branch the ticket was issued from
     createdAt: { type: Date, default: Date.now },
     isCoupon: { type: Boolean, default: false },
     parentId: { type: String }, // If it's a sub-ticket

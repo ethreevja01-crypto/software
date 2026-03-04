@@ -11,7 +11,7 @@ const isProduction = import.meta.env.PROD;
 const envApiUrl = import.meta.env.VITE_API_URL;
 
 // Default fallbacks
-const LOCAL_BACKEND = 'http://api.ethree.in';
+const LOCAL_BACKEND = 'https://software-rho-three.vercel.app'; // Migrated to Vercel API 
 const VERCEL_BACKEND = 'https://software-rho-three.vercel.app';
 
 export const API_URL = envApiUrl || (isProduction ? VERCEL_BACKEND : LOCAL_BACKEND);
