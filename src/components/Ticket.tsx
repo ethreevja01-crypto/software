@@ -13,15 +13,7 @@ interface TicketProps {
     ticketId: string;
     mobileNumber?: string;
     earnedPoints?: number;
-}
-
-interface TicketProps {
-    items: CartItem[];
-    total: number;
-    date: string;
-    ticketId: string;
-    mobileNumber?: string;
-    earnedPoints?: number;
+    paymentMode?: string;
     settings?: {
         top: number;
         bottom: number;
@@ -31,7 +23,7 @@ interface TicketProps {
     };
 }
 
-export const Ticket = forwardRef<HTMLDivElement, TicketProps & { subTickets?: any[], skipMaster?: boolean, isPreview?: boolean }>(({ items, total, date, ticketId, subTickets, skipMaster, isPreview, settings: margins }, ref) => {
+export const Ticket = forwardRef<HTMLDivElement, TicketProps & { subTickets?: any[], skipMaster?: boolean, isPreview?: boolean }>(({ items, total, date, ticketId, subTickets, skipMaster, isPreview, paymentMode, settings: margins }, ref) => {
 
     const TicketContent = ({ data, items: ticketItems, total: ticketTotal, hasPageBreak = false }: { data: any, items?: CartItem[], total?: number, hasPageBreak?: boolean }) => {
         const displayItems = ticketItems || items;
@@ -120,7 +112,7 @@ export const Ticket = forwardRef<HTMLDivElement, TicketProps & { subTickets?: an
 
                 {/* Sub-Header Row: Tagline and Time/ID */}
                 <div className="flex justify-between items-start mb-4">
-                    <div className="bg-black text-white px-2 py-1 inline-block mt-1 hidden sm:inline-block print:inline-block">
+                    <div className="bg-black text-white px-2 py-1 inline-block mt-1 print:inline-block">
                         <span className="font-bold whitespace-nowrap" style={{ fontSize: '10pt' }}>Eat. Enjoy. Entertain</span>
                     </div>
                     <div className="text-right font-bold leading-tight pl-2 whitespace-nowrap" style={{ fontSize: '11pt' }}>
@@ -133,11 +125,14 @@ export const Ticket = forwardRef<HTMLDivElement, TicketProps & { subTickets?: an
                 <div className="flex justify-between items-center mb-4 px-2">
                     {/* Left: Name and Price */}
                     <div className="flex flex-col items-center justify-center flex-1 pr-2 overflow-hidden">
-                        <div className="font-bold text-center mb-2 leading-tight uppercase whitespace-nowrap" style={{ fontSize: isFreeRide ? '16pt' : '12pt' }}>
+                        <div className="font-bold text-center mb-2 leading-tight uppercase" style={{ fontSize: isFreeRide ? '16pt' : '12pt', wordBreak: 'break-word' }}>
                             {isFreeRide ? 'FREE RIDE' : mainItemName}
                         </div>
-                        <div className="bg-black text-white rounded-xl flex items-center justify-center shadow-sm px-4 py-3" style={{ minWidth: '100px' }}>
+                        <div className="bg-black text-white rounded-xl flex flex-col items-center justify-center shadow-sm px-4 py-2" style={{ minWidth: '100px' }}>
                             <span className="font-bold leading-none" style={{ fontSize: '28pt' }}>{displayTotal}/-</span>
+                            {paymentMode && (
+                                <span className="font-bold text-[8pt] uppercase tracking-wider mt-1 border-t border-white/30 w-full text-center pt-0.5">{paymentMode}</span>
+                            )}
                         </div>
                     </div>
 

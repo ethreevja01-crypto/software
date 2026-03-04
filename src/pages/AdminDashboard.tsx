@@ -240,6 +240,24 @@ export default function AdminDashboard() {
         return aggregation;
     };
 
+    const getTopRides = () => {
+        const rideCounts: Record<string, { name: string, count: number, revenue: number }> = {};
+        tickets.forEach(t => {
+            t.items?.forEach(item => {
+                const id = item.id || item._id;
+                if (!id) return;
+                if (!rideCounts[id]) {
+                    rideCounts[id] = { name: item.name, count: 0, revenue: 0 };
+                }
+                const qty = item.quantity || 1;
+                rideCounts[id].count += qty;
+                rideCounts[id].revenue += ((item.price || 0) * qty);
+            });
+        });
+        // Sort by count descending, slice top 5
+        return Object.values(rideCounts).sort((a, b) => b.count - a.count).slice(0, 5);
+    };
+
     // Change Password State
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [passwordData, setPasswordData] = useState({ email: '', newPassword: '' });
@@ -853,6 +871,50 @@ export default function AdminDashboard() {
                                             </PieChart>
                                         </ResponsiveContainer>
                                     </div>
+                                </div>
+                            </div>
+
+                            {/* Top Rides Table */}
+                            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mt-6">
+                                <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                                    <h3 className="text-sm font-black text-slate-700 uppercase tracking-wider">Top Rides by Bookings</h3>
+                                </div>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-left border-collapse">
+                                        <thead>
+                                            <tr className="bg-slate-50/50 border-b border-slate-200">
+                                                <th className="px-6 py-4 text-xs font-extrabold text-slate-500 uppercase tracking-wider">Rank</th>
+                                                <th className="px-6 py-4 text-xs font-extrabold text-slate-500 uppercase tracking-wider">Ride Name</th>
+                                                <th className="px-6 py-4 text-xs font-extrabold text-slate-500 uppercase tracking-wider text-center">Total Bookings</th>
+                                                <th className="px-6 py-4 text-xs font-extrabold text-slate-500 uppercase tracking-wider text-right">Revenue Generated</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-100">
+                                            {getTopRides().map((ride, index) => (
+                                                <tr key={ride.name} className="hover:bg-slate-50/80 transition-colors">
+                                                    <td className="px-6 py-3">
+                                                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${index === 0 ? 'bg-amber-100 text-amber-600' : index === 1 ? 'bg-slate-200 text-slate-600' : index === 2 ? 'bg-orange-100 text-orange-600' : 'bg-slate-100 text-slate-400'}`}>
+                                                            {index + 1}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-3 font-bold text-slate-700">{ride.name}</td>
+                                                    <td className="px-6 py-3 text-center">
+                                                        <span className="font-black text-blue-600 bg-blue-50 px-2 py-1 rounded-lg">{ride.count}</span>
+                                                    </td>
+                                                    <td className="px-6 py-3 text-right">
+                                                        <span className="text-emerald-600 font-bold">₹{ride.revenue.toLocaleString()}</span>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                            {getTopRides().length === 0 && (
+                                                <tr>
+                                                    <td colSpan={4} className="px-6 py-8 text-center text-slate-500">
+                                                        No ride data available yet.
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
 

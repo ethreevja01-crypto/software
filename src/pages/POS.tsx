@@ -254,7 +254,7 @@ export default function POS() {
 
         // 2. Prepare Individual Ride Tickets
         cart.forEach(item => {
-            const isCombo = item.name.toLowerCase().includes('combo') || ['19', '20', '21'].includes(item.id);
+            const isCombo = item.name.toLowerCase().includes('combo');
             if (isCombo) {
                 // Special Case: Combo Ride prints 6 tickets per quantity
                 for (let i = 0; i < item.quantity * 6; i++) {
@@ -629,7 +629,7 @@ export default function POS() {
             </div>
 
             {/* Print Layout - Managed by visibility rules in Ticket.tsx */}
-            <div className="hidden print:block print-container" style={{ width: '3in' }}>
+            <div className="hidden print:block print-container" style={{ width: '3.5in' }}>
                 <div className="p-0">
                     <Ticket
                         ref={ticketRef}
@@ -641,6 +641,7 @@ export default function POS() {
                         subTickets={printData?.subTickets}
                         skipMaster={printData?.skipMaster}
                         earnedPoints={printData?.earnedPoints}
+                        paymentMode={printData?.paymentMode}
                         settings={printSettings}
                     />
                 </div>
@@ -778,7 +779,7 @@ export default function POS() {
                                     </div>
                                 </div>
 
-                                <div className="bg-white shadow-2xl ring-1 ring-black/10 overflow-hidden" style={{ width: '3in' }}>
+                                <div className="bg-white shadow-2xl ring-1 ring-black/10 overflow-hidden" style={{ width: '3.5in' }}>
                                     <Ticket
                                         items={printData?.items || []}
                                         total={printData?.total || 0}
@@ -788,6 +789,7 @@ export default function POS() {
                                         subTickets={printData?.subTickets}
                                         skipMaster={printData?.skipMaster}
                                         earnedPoints={printData?.earnedPoints}
+                                        paymentMode={printData?.paymentMode}
                                         isPreview={true}
                                         settings={printSettings}
                                     />
