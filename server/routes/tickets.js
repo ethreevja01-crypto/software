@@ -24,9 +24,9 @@ router.post('/', async (req, res) => {
             return res.status(400).json({ message: 'Invalid ticket data' });
         }
 
-        // Safety: Ensure it carries some posId identifying where it came from.
+        // Ensure posId is provided from frontend or fallback to default
         if (!ticketData.posId) {
-            ticketData.posId = 'pos1'; // default fallback
+            ticketData.posId = 'pos1'; // Legacy fallback
         }
 
         const newTicket = await Ticket.create(ticketData);

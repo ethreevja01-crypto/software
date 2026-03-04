@@ -46,8 +46,8 @@ router.post('/register', async (req, res) => {
         let user = await User.findOne({ email });
         if (user) return res.status(400).json({ message: 'User already exists' });
 
-        // Password hashing is handled by User model pre-save hook
-        user = await User.create({ name, email, password, role: role || 'customer', posId: req.body.posId || 'pos1' });
+        const userPosId = req.body.posId || 'pos1';
+        user = await User.create({ name, email, password, role: role || 'customer', posId: userPosId });
 
         const token = jwt.sign({ id: user._id, role: user.role, email: user.email, posId: user.posId }, JWT_SECRET, { expiresIn: '1d' });
         res.status(201).json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role, posId: user.posId } });
@@ -214,10 +214,8 @@ router.post('/verify-otp', async (req, res) => {
 
         let user = await User.findOne({ email });
         if (!user) {
-            // For OTP users, we set a default random password or handle as special case. 
-            // Setting a strong random password for now.
-            const randomPass = Math.random().toString(36).slice(-8);
-            user = await User.create({ name: name || 'User', email, password: randomPass, role: 'customer', posId: 'pos1' });
+            const userPosId = req.body.posId || 'pos1';
+            user = await User.create({ name: name || 'User', email, password: randomPass, role: 'customer', posId: userPosId });
         }
 
         const token = jwt.sign({ id: user._id, role: user.role, email: user.email, posId: user.posId }, JWT_SECRET, { expiresIn: '1d' });
