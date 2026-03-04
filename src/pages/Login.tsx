@@ -28,7 +28,7 @@ export default function Login() {
             localStorage.setItem('token', token);
             localStorage.setItem('user', JSON.stringify(user));
 
-            if (user.role === 'admin') {
+            if (user.role === 'admin' || user.role === 'superadmin') {
                 navigate('/admin');
             } else if (user.role === 'verify') {
                 navigate('/verify');
