@@ -34,14 +34,19 @@ export default function AdminDashboard() {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedUserSales, setSelectedUserSales] = useState<string | null>(null);
     const [view, setView] = useState<'transactions' | 'analytics' | 'users'>('transactions');
+    const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
+    const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
     const [ticketStats, setTicketStats] = useState({ total: 0, revenue: 0, scanned: 0, pending: 0 });
     const navigate = useNavigate();
 
     useEffect(() => {
         fetchTickets();
         fetchUsers();
-        fetchStats();
     }, []);
+
+    useEffect(() => {
+        fetchStats();
+    }, [startDate, endDate]);
 
     const clearAllData = async () => {
         setLoading(true);
@@ -112,7 +117,9 @@ export default function AdminDashboard() {
         try {
             const user = JSON.parse(localStorage.getItem('user') || '{}');
             const posId = (user.role === 'superadmin') ? 'all' : (user.posId || 'pos1');
-            const response = await axios.get(`${API_URL}/api/tickets/stats?posId=${posId}`);
+            const response = await axios.get(`${API_URL}/api/tickets/stats`, {
+                params: { startDate, endDate, posId }
+            });
             setTicketStats(response.data);
         } catch (error) {
             console.error('Failed to fetch stats', error);
@@ -205,7 +212,12 @@ export default function AdminDashboard() {
     const totalRevenue = tickets.reduce((sum, t) => sum + t.amount, 0);
 
     // Filtered Tickets
-    const filteredTickets = tickets.filter(t => {
+    const filteredTicketsByDate = tickets.filter(t => {
+        const ticketDate = t.createdAt.split('T')[0];
+        return ticketDate >= startDate && ticketDate <= endDate;
+    });
+
+    const filteredTickets = filteredTicketsByDate.filter(t => {
         const idMatch = t.id ? t.id.toLowerCase().includes(searchTerm.toLowerCase()) : false;
         const mobileMatch = t.mobile ? t.mobile.includes(searchTerm) : false;
         const userMatch = selectedUserSales ? t.createdBy === selectedUserSales : true;
@@ -220,14 +232,17 @@ export default function AdminDashboard() {
     });
 
     const getAnalyticsData = () => {
-        const last7Days = [...Array(7)].map((_, i) => {
-            const d = new Date();
-            d.setDate(d.getDate() - i);
-            return d.toISOString().split('T')[0];
-        });
+        // Generate list of dates in the range
+        const dates = [];
+        let curr = new Date(startDate);
+        const end = new Date(endDate);
+        while (curr <= end) {
+            dates.push(curr.toISOString().split('T')[0]);
+            curr.setDate(curr.getDate() + 1);
+        }
 
-        const aggregation = last7Days.map(date => {
-            const dailyTickets = tickets.filter(t => new Date(t.createdAt).toISOString().split('T')[0] === date);
+        return dates.map(date => {
+            const dailyTickets = tickets.filter(t => t.createdAt.split('T')[0] === date);
             return {
                 date,
                 count: dailyTickets.length,
@@ -235,9 +250,7 @@ export default function AdminDashboard() {
                 cash: dailyTickets.filter(t => !t.paymentMode || t.paymentMode.toLowerCase() === 'cash').reduce((sum, t) => sum + t.amount, 0),
                 upi: dailyTickets.filter(t => t.paymentMode?.toLowerCase() === 'upi').reduce((sum, t) => sum + t.amount, 0),
             };
-        });
-
-        return aggregation;
+        }).reverse();
     };
 
     const getTopRides = () => {
@@ -651,6 +664,28 @@ export default function AdminDashboard() {
                     </div>
 
                     <div className="flex flex-col sm:flex-row gap-3 items-center justify-end w-full md:w-auto">
+                        <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 p-1.5 rounded-xl">
+                            <div className="flex items-center gap-2 px-2">
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">From</span>
+                                <input
+                                    type="date"
+                                    className="bg-transparent border-none text-xs font-bold text-slate-700 focus:ring-0 outline-none"
+                                    value={startDate}
+                                    onChange={(e) => setStartDate(e.target.value)}
+                                />
+                            </div>
+                            <div className="h-4 w-px bg-slate-200"></div>
+                            <div className="flex items-center gap-2 px-2">
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">To</span>
+                                <input
+                                    type="date"
+                                    className="bg-transparent border-none text-xs font-bold text-slate-700 focus:ring-0 outline-none"
+                                    value={endDate}
+                                    onChange={(e) => setEndDate(e.target.value)}
+                                />
+                            </div>
+                        </div>
+
                         {(view === 'transactions' || view === 'users') && (
                             <div className="relative w-full sm:w-64 md:w-72">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />

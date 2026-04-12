@@ -74,15 +74,25 @@ router.get('/', async (req, res) => {
  */
 router.get('/stats', async (req, res) => {
     try {
-        const startOfDay = new Date();
-        startOfDay.setHours(0, 0, 0, 0);
+        let { startDate, endDate } = req.query;
+        let start, end;
 
-        const endOfDay = new Date();
-        endOfDay.setHours(23, 59, 59, 999);
+        if (startDate && endDate) {
+            start = new Date(startDate);
+            start.setHours(0, 0, 0, 0);
+            end = new Date(endDate);
+            end.setHours(23, 59, 59, 999);
+        } else {
+            // Default to Today
+            start = new Date();
+            start.setHours(0, 0, 0, 0);
+            end = new Date();
+            end.setHours(23, 59, 59, 999);
+        }
 
-        // We only count tickets created today
+        // We only count tickets created in the specified range
         const query = {
-            createdAt: { $gte: startOfDay, $lte: endOfDay },
+            createdAt: { $gte: start, $lte: end },
             parentId: { $exists: false } // Only count master tickets for revenue/count
         };
 
@@ -97,12 +107,12 @@ router.get('/stats', async (req, res) => {
             revenue: tickets.reduce((sum, t) => sum + (t.amount || 0), 0),
             // For scanned/pending, we look at individual ride tickets (isCoupon: true)
             scanned: await Ticket.countDocuments({
-                createdAt: { $gte: startOfDay, $lte: endOfDay },
+                createdAt: { $gte: start, $lte: end },
                 isCoupon: true,
                 status: 'used'
             }),
             pending: await Ticket.countDocuments({
-                createdAt: { $gte: startOfDay, $lte: endOfDay },
+                createdAt: { $gte: start, $lte: end },
                 isCoupon: true,
                 status: 'valid'
             })

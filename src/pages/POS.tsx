@@ -149,6 +149,7 @@ export default function POS() {
             name: '🎁 Free Priority Ride',
             price: 0,
             quantity: 1,
+            image: 'https://cdn3.f-cdn.com/contestentries/1736197/26581190/5e4a3c72bbcf7_thumb900.jpg',
             description: 'Loyalty Reward (100 Pts)'
         }]);
     }, []);
@@ -256,14 +257,14 @@ export default function POS() {
         cart.forEach(item => {
             const isCombo = item.name.toLowerCase().includes('combo');
             if (isCombo) {
-                // Special Case: Combo Ride prints 6 tickets per quantity
-                for (let i = 0; i < item.quantity * 6; i++) {
+                // Special Case: Combo Ride prints 7 tickets per quantity
+                for (let i = 0; i < item.quantity * 7; i++) {
                     const subId = `${ticketId}-C${subTickets.length + 1}`;
                     const subTicket = {
                         id: subId,
                         amount: 100, // Fixed price per sub-ticket for combo
                         date: date,
-                        items: [{ ...item, quantity: 1, name: item.name.replace(/\(5\s*Rides\)/gi, '(6 Rides)').toUpperCase(), price: 100 }],
+                        items: [{ ...item, quantity: 1, name: item.name.replace(/\(\d+\s*Rides\)/gi, '(7 Rides)').toUpperCase(), price: 100 }],
                         total: 100,
                         status: 'valid',
                         mobile: mobileNumber,
@@ -328,15 +329,16 @@ export default function POS() {
         setShowPrintPreview(false);
 
         // 1. Trigger Print Immediately (Fastest UX)
-        setTimeout(() => {
-            window.print();
-            setShowSuccessModal(true);
-            setCart([]);
-            setPaymentMode(null);
-            setMobileNumber('');
-        }, 100);
+        // window.print() is BLOCKING in most browsers, meaning it stays here until dialog is closed
+        window.print();
+        
+        // 2. Clear Cart and Show Success immediately after print dialog closes
+        setShowSuccessModal(true);
+        setCart([]);
+        setPaymentMode(null);
+        setMobileNumber('');
 
-        // 2. Save to Backend in Background (Non-blocking)
+        // 3. Save to Backend (Only after user finished with print dialog)
         const saveToBackend = async () => {
             try {
                 if (!isOnline) throw new Error('Offline');
@@ -348,7 +350,7 @@ export default function POS() {
                 if (mobileNumber && mobileNumber.length === 10) {
                     if (totalWithTax >= 100) {
                         try {
-                            const loyaltyRes = await axios.post(`${API_URL}/api/loyalty/earn`, {
+                            const loyaltyRes = await axios.post(`${API_URL || FALLBACK_API_URL}/api/loyalty/earn`, {
                                 mobile: mobileNumber,
                                 amount: totalWithTax,
                                 ticketId: printData?.id || ''
@@ -362,7 +364,7 @@ export default function POS() {
                     if (rewardItem) {
                         for (let i = 0; i < rewardItem.quantity; i++) {
                             try {
-                                await axios.post(`${API_URL}/api/loyalty/redeem`, { mobile: mobileNumber, ticketId: printData?.id || '' });
+                                await axios.post(`${API_URL || FALLBACK_API_URL}/api/loyalty/redeem`, { mobile: mobileNumber, ticketId: printData?.id || '' });
                             } catch (e) { }
                         }
                     }
@@ -376,71 +378,8 @@ export default function POS() {
             }
         };
 
-        saveToBackend();
+        await saveToBackend();
     };
-
-    const handleReprint = async () => {
-        if (!printData) return;
-
-        // Security Feature: Generate NEW Ticket ID for reprints to prevent scams/reuse
-        // This forces the cashier to account for every printed slip as a new transaction in the system.
-        const newTicketId = `TXN-${Date.now().toString().slice(-8)}-${Math.floor(Math.random() * 1000)}`;
-        const date = new Date().toLocaleString();
-
-        const newTicketData = {
-            id: newTicketId,
-            amount: printData.total, // Fix: backend expects 'amount', printData has 'total'
-            date: date,
-            items: printData.items,
-            mobile: printData.mobile,
-            paymentMode: (printData.paymentMode || 'cash') as 'cash' | 'upi',
-            status: 'valid',
-            posId: loggedUser.posId || 'pos1',
-            createdAt: new Date().toISOString(),
-            isCoupon: false
-        };
-
-        // Handle SubTickets regeneration if needed
-        let newSubTickets: any[] = [];
-        if (printData.subTickets && printData.subTickets.length > 0) {
-            newSubTickets = printData.subTickets.map((t, index) => {
-                const suffix = t.id.includes('-C') ? 'C' : 'R';
-                return {
-                    ...t,
-                    id: `${newTicketId}-${suffix}${index + 1}`,
-                    parentId: newTicketId,
-                    date: date,
-                    createdAt: new Date().toISOString()
-                };
-            });
-        }
-
-        const ticketsToSave = [newTicketData, ...newSubTickets];
-
-        // Update UI State for Printing
-        setPrintData({
-            ...printData, // Preserve items, earnedPoints, etc.
-            date: date,
-            id: newTicketId,
-            subTickets: newSubTickets
-        });
-
-        // Save New Transaction to Backend
-        try {
-            if (!isOnline) throw new Error('Offline');
-            await Promise.all(ticketsToSave.map(t => axios.post(`${API_URL}/api/tickets`, t)));
-        } catch (error) {
-            console.log('Backend unavailable during reprint, queueing locally.');
-            const pending = JSON.parse(localStorage.getItem('pending_tickets') || '[]');
-            ticketsToSave.forEach(t => pending.push(t));
-            localStorage.setItem('pending_tickets', JSON.stringify(pending));
-            setPendingCount(prev => prev + ticketsToSave.length);
-        }
-
-        // Wait for state update then print
-        setTimeout(() => {
-            window.print();
-        }, 100);
     };
 
     const closeSuccessModal = () => {
@@ -842,13 +781,6 @@ export default function POS() {
                                 className="w-full px-4 py-3.5 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/20 text-lg active:scale-[0.98]"
                             >
                                 Done
-                            </button>
-                            <button
-                                onClick={handleReprint}
-                                className="w-full px-4 py-3 bg-white text-slate-700 font-bold rounded-xl border-2 border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors text-base flex items-center justify-center gap-2"
-                            >
-                                <RefreshCw size={18} />
-                                Reprint Ticket
                             </button>
                         </div>
                     </div>
