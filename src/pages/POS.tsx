@@ -380,7 +380,6 @@ export default function POS() {
 
         await saveToBackend();
     };
-    };
 
     const closeSuccessModal = () => {
         setShowSuccessModal(false);
