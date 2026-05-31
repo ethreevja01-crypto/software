@@ -47,26 +47,30 @@ export default function Accounts() {
     };
 
     const downloadCSV = () => {
-        if (tickets.length === 0) return;
+        const targetTickets = filteredTickets;
+        if (targetTickets.length === 0) return;
 
         const headers = ['Ticket ID', 'Date', 'Amount', 'Mobile', 'Payment Mode', 'Created At'];
         const csvContent = [
             headers.join(','),
-            ...tickets.map(t => [
-                t.id,
-                `"${t.date}"`,
-                t.amount,
-                t.mobile || '',
-                t.paymentMode?.toLowerCase() || 'upi',
-                t.createdAt
-            ].join(','))
+            ...targetTickets.map(t => {
+                const cleanDate = t.createdAt ? new Date(t.createdAt).toISOString().split('T')[0] : (t.date ? t.date.split('T')[0] : '');
+                return [
+                    t.id,
+                    `"${cleanDate}"`,
+                    t.amount,
+                    t.mobile || '',
+                    t.paymentMode?.toLowerCase() || 'upi',
+                    `"${cleanDate}"`
+                ].join(',');
+            })
         ].join('\n');
 
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
         const url = URL.createObjectURL(blob);
         link.setAttribute('href', url);
-        link.setAttribute('download', `upi_sales_report_${new Date().toISOString().split('T')[0]}.csv`);
+        link.setAttribute('download', 'upi_sales_report.csv');
         link.style.visibility = 'hidden';
         document.body.appendChild(link);
         link.click();
@@ -114,7 +118,7 @@ export default function Accounts() {
                 </div>
             </header>
 
-            <main className="container mx-auto p-6 max-w-7xl">
+            <main className="container mx-auto p-6 max-w-7xl pb-16">
                 {/* Stats Summary */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
@@ -198,11 +202,22 @@ export default function Accounts() {
                                     filteredTickets.map((ticket) => (
                                         <tr key={ticket._id} className="group hover:bg-blue-50/30 transition-colors">
                                             <td className="px-6 py-4">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="bg-blue-50 p-2 rounded-lg text-blue-500 group-hover:bg-white group-hover:shadow-sm transition-all">
-                                                        <Receipt size={16} />
+                                                <div className="flex flex-col gap-1">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="bg-blue-50 p-2 rounded-lg text-blue-500 group-hover:bg-white group-hover:shadow-sm transition-all">
+                                                            <Receipt size={16} />
+                                                        </div>
+                                                        <span className="font-mono text-sm font-bold text-slate-700">{ticket.id}</span>
                                                     </div>
-                                                    <span className="font-mono text-sm font-bold text-slate-700">{ticket.id}</span>
+                                                    {ticket.items && ticket.items.length > 0 && (
+                                                        <div className="flex flex-wrap gap-1 mt-1 pl-11">
+                                                            {ticket.items.map((item, idx) => (
+                                                                <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                                                                    {item.name} {item.quantity > 1 ? `x${item.quantity}` : ''}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">

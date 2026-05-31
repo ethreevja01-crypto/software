@@ -133,26 +133,30 @@ export default function AdminDashboard() {
     };
 
     const downloadCSV = () => {
-        if (tickets.length === 0) return;
+        const targetTickets = filteredTickets;
+        if (targetTickets.length === 0) return;
 
         const headers = ['Ticket ID', 'Date', 'Amount', 'Mobile', 'Payment Mode', 'Created At'];
         const csvContent = [
             headers.join(','),
-            ...tickets.map(t => [
-                t.id,
-                `"${new Date(t.createdAt).toISOString().split('T')[0]}"`,
-                t.amount,
-                t.mobile || '',
-                t.paymentMode?.toLowerCase() || 'cash',
-                `"${new Date(t.createdAt).toISOString().split('T')[0]}"`
-            ].join(','))
+            ...targetTickets.map(t => {
+                const cleanDate = t.createdAt ? new Date(t.createdAt).toISOString().split('T')[0] : '';
+                return [
+                    t.id,
+                    `"${cleanDate}"`,
+                    t.amount,
+                    t.mobile || '',
+                    t.paymentMode?.toLowerCase() || 'cash',
+                    `"${cleanDate}"`
+                ].join(',');
+            })
         ].join('\n');
 
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
         const url = URL.createObjectURL(blob);
         link.setAttribute('href', url);
-        link.setAttribute('download', `sales_report_${new Date().toISOString().split('T')[0]}.csv`);
+        link.setAttribute('download', 'sales_report.csv');
         link.style.visibility = 'hidden';
         document.body.appendChild(link);
         link.click();
@@ -177,7 +181,7 @@ export default function AdminDashboard() {
         const link = document.createElement('a');
         const url = URL.createObjectURL(blob);
         link.setAttribute('href', url);
-        link.setAttribute('download', `sales_summary_7days_${new Date().toISOString().split('T')[0]}.csv`);
+        link.setAttribute('download', 'sales_summary.csv');
         link.style.visibility = 'hidden';
         document.body.appendChild(link);
         link.click();
@@ -210,6 +214,15 @@ export default function AdminDashboard() {
 
     // Derived Stats
     const totalRevenue = tickets.reduce((sum, t) => sum + t.amount, 0);
+
+    const getDaysDiff = () => {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const diffTime = Math.abs(end.getTime() - start.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        return diffDays;
+    };
+    const daysDiff = getDaysDiff();
 
     // Filtered Tickets
     const filteredTicketsByDate = tickets.filter(t => {
@@ -255,7 +268,7 @@ export default function AdminDashboard() {
 
     const getTopRides = () => {
         const rideCounts: Record<string, { name: string, count: number, revenue: number }> = {};
-        tickets.forEach(t => {
+        filteredTicketsByDate.forEach(t => {
             t.items?.forEach(item => {
                 const id = item.id || item._id;
                 if (!id) return;
@@ -409,7 +422,7 @@ export default function AdminDashboard() {
                 </div>
             </header>
 
-            <main className="container mx-auto p-4 md:p-6 max-w-7xl">
+            <main className="container mx-auto p-4 md:p-6 max-w-7xl pb-16">
                 {/* Stats Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                     {/* Total Revenue */}
@@ -638,8 +651,8 @@ export default function AdminDashboard() {
 
                 {/* View Switcher & Toolbar */}
                 {/* View Switcher & Toolbar */}
-                <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6 bg-white p-3 rounded-2xl shadow-sm border border-slate-200">
-                    <div className="grid grid-cols-3 md:flex bg-slate-100 p-1 rounded-xl w-full md:w-auto gap-1">
+                <div className="flex flex-col lg:flex-row justify-between items-center gap-4 mb-6 bg-white p-3 rounded-2xl shadow-sm border border-slate-200">
+                    <div className="grid grid-cols-3 lg:flex bg-slate-100 p-1 rounded-xl w-full lg:w-auto gap-1">
                         <button
                             onClick={() => setView('transactions')}
                             className={`flex items-center justify-center gap-1.5 px-2 py-2 md:px-6 md:py-2.5 rounded-lg font-bold text-[10px] md:text-sm transition-all ${view === 'transactions' ? 'bg-white text-blue-600 shadow-md ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-700'}`}
@@ -663,8 +676,8 @@ export default function AdminDashboard() {
                         </button>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row gap-3 items-center justify-end w-full md:w-auto">
-                        <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 p-1.5 rounded-xl">
+                    <div className="flex flex-col sm:flex-row flex-wrap gap-3 items-center justify-end w-full lg:w-auto">
+                        <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 p-1.5 rounded-xl flex-wrap sm:flex-nowrap">
                             <div className="flex items-center gap-2 px-2">
                                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">From</span>
                                 <input
@@ -687,7 +700,7 @@ export default function AdminDashboard() {
                         </div>
 
                         {(view === 'transactions' || view === 'users') && (
-                            <div className="relative w-full sm:w-64 md:w-72">
+                            <div className="relative w-full sm:w-64 lg:w-72">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                                 <input
                                     type="text"
@@ -699,7 +712,7 @@ export default function AdminDashboard() {
                             </div>
                         )}
 
-                        <div className="flex gap-2 w-full sm:w-auto justify-end">
+                        <div className="flex flex-wrap gap-2 w-full sm:w-auto justify-end">
                             <button
                                 onClick={() => { fetchTickets(); fetchStats(); }}
                                 className="p-2 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 text-slate-600 transition-all shadow-sm flex-none"
@@ -791,11 +804,22 @@ export default function AdminDashboard() {
                                         filteredTickets.map((ticket) => (
                                             <tr key={ticket._id} className="group hover:bg-slate-50/80 transition-colors">
                                                 <td className="px-6 py-4">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="bg-slate-100 p-2 rounded-lg text-slate-500 group-hover:bg-white group-hover:shadow-sm transition-all">
-                                                            <Receipt size={16} />
+                                                    <div className="flex flex-col gap-1">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="bg-slate-100 p-2 rounded-lg text-slate-500 group-hover:bg-white group-hover:shadow-sm transition-all">
+                                                                <Receipt size={16} />
+                                                            </div>
+                                                            <span className="font-mono text-sm font-bold text-slate-700">{ticket.id}</span>
                                                         </div>
-                                                        <span className="font-mono text-sm font-bold text-slate-700">{ticket.id}</span>
+                                                        {ticket.items && ticket.items.length > 0 && (
+                                                            <div className="flex flex-wrap gap-1 mt-1 pl-11">
+                                                                {ticket.items.map((item, idx) => (
+                                                                    <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                                                                        {item.name} {item.quantity > 1 ? `x${item.quantity}` : ''}
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4">
@@ -847,13 +871,13 @@ export default function AdminDashboard() {
                                             <div className="p-2 bg-white/10 rounded-lg">
                                                 <BarChart3 size={18} className="text-emerald-400" />
                                             </div>
-                                            <span className="text-xs font-bold uppercase tracking-widest">Total Revenue (7 Days)</span>
+                                            <span className="text-xs font-bold uppercase tracking-widest">Total Revenue ({daysDiff === 1 ? '1 Day' : `${daysDiff} Days`})</span>
                                         </div>
                                         <div className="text-4xl font-black tracking-tight text-white mb-1">
-                                            ₹{tickets.reduce((sum, t) => sum + t.amount, 0).toLocaleString()}
+                                            ₹{filteredTicketsByDate.reduce((sum, t) => sum + t.amount, 0).toLocaleString()}
                                         </div>
                                         <div className="text-xs font-medium text-slate-400">
-                                            {tickets.length} total tickets processed
+                                            {filteredTicketsByDate.length} total tickets processed
                                         </div>
                                     </div>
                                 </div>
@@ -868,14 +892,14 @@ export default function AdminDashboard() {
                                                 <div className="w-3 h-3 rounded-full bg-amber-500"></div>
                                                 <span className="text-sm font-bold text-slate-600">Cash:</span>
                                                 <span className="text-sm font-black text-slate-900">
-                                                    ₹{tickets.filter(t => !t.paymentMode || t.paymentMode === 'cash').reduce((sum, t) => sum + t.amount, 0).toLocaleString()}
+                                                    ₹{filteredTicketsByDate.filter(t => !t.paymentMode || t.paymentMode === 'cash').reduce((sum, t) => sum + t.amount, 0).toLocaleString()}
                                                 </span>
                                             </div>
                                             <div className="flex items-center gap-3">
                                                 <div className="w-3 h-3 rounded-full bg-blue-600"></div>
                                                 <span className="text-sm font-bold text-slate-600">UPI:</span>
                                                 <span className="text-sm font-black text-slate-900">
-                                                    ₹{tickets.filter(t => t.paymentMode === 'upi').reduce((sum, t) => sum + t.amount, 0).toLocaleString()}
+                                                    ₹{filteredTicketsByDate.filter(t => t.paymentMode === 'upi').reduce((sum, t) => sum + t.amount, 0).toLocaleString()}
                                                 </span>
                                             </div>
                                         </div>
@@ -885,8 +909,8 @@ export default function AdminDashboard() {
                                             <PieChart>
                                                 <Pie
                                                     data={[
-                                                        { name: 'Cash', value: tickets.filter(t => !t.paymentMode || t.paymentMode === 'cash').reduce((sum, t) => sum + t.amount, 0) },
-                                                        { name: 'UPI', value: tickets.filter(t => t.paymentMode === 'upi').reduce((sum, t) => sum + t.amount, 0) }
+                                                        { name: 'Cash', value: filteredTicketsByDate.filter(t => !t.paymentMode || t.paymentMode === 'cash').reduce((sum, t) => sum + t.amount, 0) },
+                                                        { name: 'UPI', value: filteredTicketsByDate.filter(t => t.paymentMode === 'upi').reduce((sum, t) => sum + t.amount, 0) }
                                                     ]}
                                                     cx="50%"
                                                     cy="50%"
