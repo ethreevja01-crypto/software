@@ -213,7 +213,6 @@ export default function AdminDashboard() {
     };
 
     // Derived Stats
-    const totalRevenue = tickets.reduce((sum, t) => sum + t.amount, 0);
 
     const getDaysDiff = () => {
         const start = new Date(startDate);
@@ -1092,11 +1091,11 @@ export default function AdminDashboard() {
 
                     {/* Footer Summary */}
                     <div className="px-6 py-4 border-t border-slate-200 bg-slate-50/50 flex flex-col md:flex-row justify-between items-center text-sm text-slate-500 gap-4">
-                        <span className="font-medium">Summary for last <span className="text-slate-900 font-bold">{tickets.length}</span> tickets</span>
+                        <span className="font-medium">Summary for <span className="text-slate-900 font-bold">{filteredTickets.length}</span> tickets</span>
                         <div className="flex items-center gap-4">
                             <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm">
                                 <span className="text-slate-400 font-bold text-xs uppercase">Overall Total:</span>
-                                <span className="font-black text-slate-900 text-lg">₹{totalRevenue.toLocaleString()}</span>
+                                <span className="font-black text-slate-900 text-lg">₹{filteredTickets.reduce((sum, t) => sum + t.amount, 0).toLocaleString()}</span>
                             </div>
                         </div>
                     </div>
